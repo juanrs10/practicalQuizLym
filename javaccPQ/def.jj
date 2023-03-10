@@ -1,7 +1,6 @@
 package uniandes.lym.robot.control;
 
-import uniandes.lym.robot.kernel.*;
-import uniandes.lym.robot.view.Console;
+import MyStack.java;
  
 import java.awt.Point;
 import java.io.*;
@@ -10,21 +9,18 @@ import java.util.LinkedList;
 import java.util.HashMap;
 
 @SuppressWarnings("serial")
-public class Robot 
+public class Stack 
 {
 
-
-	private RobotWorldDec world;
-	private HashMap<String,Integer> definedVars;
+	private MyStack stack;
 	
-	
-	void setWorld(RobotWorld w) {
-		world = (RobotWorldDec) w;	
+	void setStack(MyStack w) {
+		stack = (stack) w;	
 	}
 
 	String output=new String();
 }
-PARSER_END(Robot)
+PARSER_END(Stack)
 
 SKIP :
 {
@@ -149,35 +145,11 @@ TOKEN : /*ALPHA NUMERIC*/
 	}
 	{<START> (vars() {vars(); })? ("procs"(procs())*)? block()
 	}
-	
-
-	void instruction():
-	{
-	}
-	{ (command1()|command2()|whilef()|iff()|proccall()|repeat())
-	}
 
 	void command1 () :
 	{
 	}
-	{(<MOVE> ":" IDNT())
-	| (<TURN> ":" turning())
-	| (<FACE> ":" cardinal())
-	| (<NOP> ":")
-	}
-	void turning () :
-	{
-	}
-	{<RIGHT>| <LEFT> | <AROUND>
-	}
-
-	void command2 () :
-	{
-	}
-	{((<PUTC>|<PICKC>) ":" IDNT() "," CP()) |((<MOVETOTHE>|<JUMPTOTHE>) ":" IDNT() "," direction())
-	|((<MOVEINDIR>|<JUMPINDIR>) ":" IDNT() "," cardinal())
-	|(<ASSIGNTO> ":" <NUM> "," <ID>)
-	| (<GOTO> ":" IDNT() "," IDNT())
+	{((TOKEN) " " IDNT() ";")
 	}
 	void IDNT():
 	{
