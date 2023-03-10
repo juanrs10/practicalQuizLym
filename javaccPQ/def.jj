@@ -1,0 +1,187 @@
+package uniandes.lym.robot.control;
+
+import uniandes.lym.robot.kernel.*;
+import uniandes.lym.robot.view.Console;
+ 
+import java.awt.Point;
+import java.io.*;
+import java.util.Vector;
+import java.util.LinkedList;
+import java.util.HashMap;
+
+@SuppressWarnings("serial")
+public class Robot 
+{
+
+
+	private RobotWorldDec world;
+	private HashMap<String,Integer> definedVars;
+	
+	
+	void setWorld(RobotWorld w) {
+		world = (RobotWorldDec) w;	
+	}
+
+	String output=new String();
+}
+PARSER_END(Robot)
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+TOKEN: /* FUNCTIONS */
+{
+
+    <PUSH: "PUSH">
+| <PUSH_FROM: "PUSH_FROM">
+| <POP: "POP">
+| <POP_TO: "POP_TO">
+| <PLUS: "PLUS">
+| <MINUS: "MINUS">
+| <TIMES: "TIMES">
+| <DIV: "DIV">
+| <POW: "POW">
+| <CHS: "CHS">  
+| <PRINT: "PRINT">
+| <STOP: "STOP">	
+
+}
+
+TOKEN: /*KEY WORDS*/
+{
+
+<START:  "START">
+| <STOP: "STOP">
+
+}
+
+TOKEN :
+{
+	<NUM: (<DIGIT>)+ >
+|  	<#DIGIT: ["0"-"9"] >
+|  	<REG: (["R","0"-"9"])>
+        
+}
+
+TOKEN : /*ALPHA NUMERIC*/
+{
+	<ID: (["a"-"z"](["a"-"z","0"-"9"])*) >
+		
+        
+}
+
+	//boolean command(uniandes.lym.robot.view.Console sistema) :
+		boolean command(Console sistema):
+	{	
+		
+		int x,y;
+		output=new String();	
+	}
+
+	
+	{
+	  start()|
+		(
+		  (
+        <PUSH> "(" x=num()")" {stack.push(x); output = "TOKEN: PUSH";}
+		| 	<PUSH_FROM>  "(" reg=reg() ")" {stack.push(reg);output = "TOKEN: PUSH_FROM ";}  
+		| 	<POP>  "(" ")" {stack.pop();output = "TOKEN: POP ";}
+		|   <POP_TO>  "(" reg=reg() ")" {stack.pop();output = "TOKEN: POP_TO";}  
+		|  <PLUS> "(" ")" {stack.plus();output = "TOKEN: PLUS";}  			  			
+		|  <MINUS> "(" ")" {stack.minus();output = "TOKEN: MINUS";}  
+	    |  <TIMES> "(" ")" {stack.times(); output = "TOKEN:  TIMES";}
+	    |  <DIV> "(" ")" {stack.div(); output = "TOKEN:  DIV";}
+	    |  <POW> "(" x=num() ")" {stack.pow(x); output = "TOKEN:  POW";}
+	    |  <CHS> "(" ")" {stack.chs(); output = "TOKEN:  CHS";}
+
+		) ";" 
+
+		{
+		    try {
+	    			 Thread.sleep(900);
+	    	    } catch (InterruptedException e) {
+	    			        System.err.format("IOException: %s%n", e);
+	    		    }
+	    			 
+			sistema.printOutput(output);
+			return true;    
+		})+
+
+    	| <EOF> {return false;} 
+	}
+
+    void reg() :
+	{
+		String reg = "R0";	
+	}
+	{
+		(<REG>)	 
+
+	}
+
+
+	int num() throws Error:
+	{	
+		int total=1;
+	}
+	{
+		<NUM>
+		{
+			try 
+			{
+				total = Integer.parseInt(token.image);
+			} 
+			catch (NumberFormatException ee) 
+			{
+				throw new Error("Number out of bounds: "+token.image+" !!");
+			}
+			return total;
+		}
+	}
+
+	void start():
+	{
+	}
+	{<START> (vars() {vars(); })? ("procs"(procs())*)? block()
+	}
+	
+
+	void instruction():
+	{
+	}
+	{ (command1()|command2()|whilef()|iff()|proccall()|repeat())
+	}
+
+	void command1 () :
+	{
+	}
+	{(<MOVE> ":" IDNT())
+	| (<TURN> ":" turning())
+	| (<FACE> ":" cardinal())
+	| (<NOP> ":")
+	}
+	void turning () :
+	{
+	}
+	{<RIGHT>| <LEFT> | <AROUND>
+	}
+
+	void command2 () :
+	{
+	}
+	{((<PUTC>|<PICKC>) ":" IDNT() "," CP()) |((<MOVETOTHE>|<JUMPTOTHE>) ":" IDNT() "," direction())
+	|((<MOVEINDIR>|<JUMPINDIR>) ":" IDNT() "," cardinal())
+	|(<ASSIGNTO> ":" <NUM> "," <ID>)
+	| (<GOTO> ":" IDNT() "," IDNT())
+	}
+	void IDNT():
+	{
+	}
+	{(<ID>| < NUM>)
+	}
+	
